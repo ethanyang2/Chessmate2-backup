@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chessmate</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell app-container">
+      <header class="topbar app-header" aria-label="Game header">
+        <a class="brand" href="/" aria-label="Chessmate home">
+          <div>
+            <div class="brand-logo-wrapper">
+              <span class="brand-icon" aria-hidden="true">♛</span>
+              <h2 class="brand-title">Chessmate</h2>
+            </div>
+            <p class="brand-author">by Ethan</p>
+          </div>
+        </a>
+        <button class="icon-button share-button btn-share" id="copyLinkButton" title="Share room" aria-label="Share room">
+          <span aria-hidden="true">Share Room</span>
+        </button>
+      </header>
+
+      <section class="home-view main-layout" id="homeView">
+        <section class="home-copy hero-section">
+          <h1 class="hero-title">
+            <span class="text-phrase">One room.</span>
+            <span class="text-phrase">One board.</span>
+            <span class="text-phrase">No clutter.</span>
+          </h1>
+          <div class="controls-wrapper">
+            <div class="buttons-row home-actions">
+              <button class="primary-button btn-primary" id="startButton">Create Room</button>
+              <button class="secondary-button btn-secondary menu-button" data-menu="joinMenu">Join Room</button>
+              <button class="secondary-button btn-secondary menu-button" data-menu="botMenu">Play Bot</button>
+            </div>
+            <div class="toggle-container">
+              <span class="toggle-label">Private Room:</span>
+              <label class="switch private-toggle">
+                <input id="privateRoomToggle" type="checkbox" aria-label="Private room" />
+                <span class="slider round toggle-track" aria-hidden="true"></span>
+              </label>
+            </div>
+          </div>
+          <div class="home-menu hidden" id="joinMenu">
+            <button class="secondary-button" id="searchGameButton">Search Public Room</button>
+            <form class="join-form" id="joinForm">
+              <input id="roomCodeInput" autocomplete="off" placeholder="Private room code" aria-label="Private room code" />
+              <button class="secondary-button" type="submit">Join Code</button>
+            </form>
+          </div>
+          <div class="home-menu hidden" id="botMenu" aria-label="Bot difficulty">
+            <button class="secondary-button bot-button" data-difficulty="easy">Easy Bot</button>
+            <button class="secondary-button bot-button" data-difficulty="medium">Medium Bot</button>
+            <button class="secondary-button bot-button" data-difficulty="hard">Hard Bot</button>
+          </div>
+        </section>
+        <section class="board-section">
+          <div class="preview-board chessboard-container" id="previewBoard" aria-hidden="true"></div>
+        </section>
+      </section>
+
+      <section class="game-view hidden" id="gameView">
+        <aside class="side-panel player-panel top-player" id="blackPanel">
+          <div>
+            <p class="panel-label">Black</p>
+            <h2 id="blackStatus">Waiting</h2>
+          </div>
+          <div class="captured" id="whiteCaptures"></div>
+        </aside>
+
+        <section class="board-wrap" aria-label="Chess board area">
+          <div class="room-strip">
+            <div>
+              <p class="panel-label">Room</p>
+              <strong id="roomName">--</strong>
+            </div>
+            <div class="turn-pill" id="turnPill">Connecting</div>
+          </div>
+          <div class="board" id="board" aria-label="Chess board"></div>
+        </section>
+
+        <aside class="side-panel player-panel bottom-player" id="whitePanel">
+          <div>
+            <p class="panel-label">White</p>
+            <h2 id="whiteStatus">Waiting</h2>
+          </div>
+          <div class="captured" id="blackCaptures"></div>
+        </aside>
+
+        <section class="side-panel game-panel">
+          <div>
+            <p class="panel-label">You are</p>
+            <h2 id="roleLabel">Joining</h2>
+          </div>
+          <div class="status-box" id="statusBox">Connecting to the room...</div>
+          <div class="control-row">
+            <button class="secondary-button" id="resetButton">Reset</button>
+            <button class="secondary-button" id="copyLinkButtonPanel">Copy Link</button>
+          </div>
+          <div class="control-row">
+            <button class="secondary-button" id="drawButton">Offer Draw</button>
+            <button class="secondary-button danger-button" id="resignButton">Resign</button>
+          </div>
+          <div class="moves" id="movesList" aria-label="Move list"></div>
+        </section>
+      </section>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

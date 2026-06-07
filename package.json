@@ -1,0 +1,14 @@
+{
+  "name": "checkmate-room",
+  "version": "1.0.0",
+  "description": "A simple, polished online chess website with share-link multiplayer.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "chess.js": "^1.0.0",
+    "ws": "^8.17.0"
+  },
+  "devDependencies": {}
+}
