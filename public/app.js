@@ -1,25 +1,10 @@
 const pieceGlyphs = {
-  wp: "♙",
-  wn: "♘",
-  wb: "♗",
-  wr: "♖",
-  wq: "♕",
-  wk: "♔",
-  bp: "♟",
-  bn: "♞",
-  bb: "♝",
-  br: "♜",
-  bq: "♛",
-  bk: "♚",
+  wp: "♙", wn: "♘", wb: "♗", wr: "♖", wq: "♕", wk: "♔",
+  bp: "♟", bn: "♞", bb: "♝", br: "♜", bq: "♛", bk: "♚",
 };
 
 const pieceNames = {
-  p: "pawn",
-  n: "knight",
-  b: "bishop",
-  r: "rook",
-  q: "queen",
-  k: "king",
+  p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king",
 };
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -48,6 +33,8 @@ const movesList = document.querySelector("#movesList");
 const toast = document.querySelector("#toast");
 const whiteCaptures = document.querySelector("#whiteCaptures");
 const blackCaptures = document.querySelector("#blackCaptures");
+
+// Audio Elements
 const moveSound = document.querySelector("#moveSound");
 const captureSound = document.querySelector("#captureSound");
 const checkSound = document.querySelector("#checkSound");
@@ -66,6 +53,7 @@ function currentRoomId() {
 }
 
 function showToast(message) {
+  if (!toast) return;
   toast.textContent = message;
   toast.classList.add("visible");
   window.clearTimeout(showToast.timer);
@@ -73,9 +61,13 @@ function showToast(message) {
 }
 
 async function createRoom(mode = "human", difficulty = "easy") {
-  const response = await fetch(`/api/new-room?mode=${mode}&difficulty=${difficulty}`);
-  const { roomId } = await response.json();
-  window.location.href = `/room/${roomId}`;
+  try {
+    const response = await fetch(`/api/new-room?mode=${mode}&difficulty=${difficulty}`);
+    const { roomId } = await response.json();
+    window.location.href = `/room/${roomId}`;
+  } catch (error) {
+    console.error("Failed to create room:", error);
+  }
 }
 
 function webSocketUrl() {
@@ -97,30 +89,33 @@ function createLobbySocket() {
 }
 
 function playGameStateSound(prevState, newState) {
-  // Don't play sounds on initial load, only on actual new moves
   if (!prevState || !newState.lastMove || prevState.turn === newState.turn) return;
 
-  // 1. Play Check Sound
   if (newState.status === "check" || newState.status === "checkmate") {
-    checkSound.currentTime = 0;
-    checkSound.play().catch(() => console.log("Audio blocked by browser"));
+    if (checkSound) {
+      checkSound.currentTime = 0;
+      checkSound.play().catch(() => console.log("Audio blocked"));
+    }
     return;
   }
 
-  // 2. Determine if it was a capture by comparing piece counts
   const prevPiecesCount = Object.keys(fenToBoard(prevState.fen)).length;
   const newPiecesCount = Object.keys(fenToBoard(newState.fen)).length;
   const wasCapture = newPiecesCount < prevPiecesCount;
 
-  // 3. Play Capture or Move Sound
   if (wasCapture) {
-    captureSound.currentTime = 0;
-    captureSound.play().catch(() => console.log("Audio blocked by browser"));
+    if (captureSound) {
+      captureSound.currentTime = 0;
+      captureSound.play().catch(() => console.log("Audio blocked"));
+    }
   } else {
-    moveSound.currentTime = 0;
-    moveSound.play().catch(() => console.log("Audio blocked by browser"));
+    if (moveSound) {
+      moveSound.currentTime = 0;
+      moveSound.play().catch(() => console.log("Audio blocked"));
+    }
   }
 }
+
 function connect(roomId) {
   socket = new WebSocket(webSocketUrl());
   socket.addEventListener("open", () => {
@@ -130,25 +125,27 @@ function connect(roomId) {
     const message = JSON.parse(event.data);
     if (message.type === "role") {
       role = message.role;
-      roleLabel.textContent = role[0].toUpperCase() + role.slice(1);
+      if (roleLabel) roleLabel.textContent = role[0].toUpperCase() + role.slice(1);
       return;
     }
     if (message.type === "match_found") return;
-   if (message.type === "state") {
-      const previousState = currentState; // 1. Save the old state
+    
+    if (message.type === "state") {
+      const previousState = currentState; 
       currentState = message;
       board = fenToBoard(message.fen);
       render();
-      playGameStateSound(previousState, currentState); // 2. Trigger the sounds!
+      playGameStateSound(previousState, currentState); 
       return;
     }
+    
     if (message.type === "error") {
       showToast(message.message);
     }
   });
   socket.addEventListener("close", () => {
-    turnPill.textContent = "Offline";
-    statusBox.textContent = "Connection lost. Refresh the room to reconnect.";
+    if (turnPill) turnPill.textContent = "Offline";
+    if (statusBox) statusBox.textContent = "Connection lost. Refresh the room to reconnect.";
   });
 }
 
@@ -238,7 +235,7 @@ function startDrag(event, square) {
     ghost: createDragGhost(piece, event.clientX, event.clientY),
     moved: false,
   };
-  boardEl.classList.add("dragging-board");
+  if (boardEl) boardEl.classList.add("dragging-board");
   event.currentTarget.setPointerCapture?.(event.pointerId);
   event.preventDefault();
   renderBoard();
@@ -257,7 +254,7 @@ function endDrag(event) {
   dragState.ghost.remove();
   dragState = null;
   ignoreClickUntil = Date.now() + 120;
-  boardEl.classList.remove("dragging-board");
+  if (boardEl) boardEl.classList.remove("dragging-board");
 
   if (target && targetsFrom(from).has(target)) {
     requestMove(from, target);
@@ -279,20 +276,26 @@ function createDragGhost(piece, x, y) {
 
 function render() {
   const roomId = currentRoomId();
-  roomName.textContent = roomId;
-  turnPill.textContent = statusLabel(currentState);
-  whiteStatus.textContent = currentState.players.white ? "At board" : "Waiting";
-  blackStatus.textContent = currentState.mode === "bot"
-    ? `${capitalize(currentState.difficulty)} bot`
-    : currentState.players.black ? "At board" : "Waiting";
-  statusBox.textContent = detailStatus(currentState);
-  movesList.textContent = formatMoves(currentState.history);
-  drawButton.textContent = currentState.drawOffer && currentState.drawOffer !== role ? "Accept Draw" : "Offer Draw";
+  if (roomName) roomName.textContent = roomId;
+  if (turnPill) turnPill.textContent = statusLabel(currentState);
+  if (whiteStatus) whiteStatus.textContent = currentState.players.white ? "At board" : "Waiting";
+  
+  if (blackStatus) {
+    blackStatus.textContent = currentState.mode === "bot"
+      ? `${capitalize(currentState.difficulty)} bot`
+      : currentState.players.black ? "At board" : "Waiting";
+  }
+  
+  if (statusBox) statusBox.textContent = detailStatus(currentState);
+  if (movesList) movesList.textContent = formatMoves(currentState.history);
+  if (drawButton) drawButton.textContent = currentState.drawOffer && currentState.drawOffer !== role ? "Accept Draw" : "Offer Draw";
+  
   renderCaptures();
   renderBoard();
 }
 
 function renderBoard() {
+  if (!boardEl) return;
   const targets = targetsFrom(selectedSquare);
   boardEl.innerHTML = "";
   for (const square of orientedSquares()) {
@@ -340,8 +343,8 @@ function renderCaptures() {
   Object.values(board).forEach((piece) => {
     counts[piece.color][piece.type] -= 1;
   });
-  whiteCaptures.innerHTML = capturedText(counts.w, "w");
-  blackCaptures.innerHTML = capturedText(counts.b, "b");
+  if (whiteCaptures) whiteCaptures.innerHTML = capturedText(counts.w, "w");
+  if (blackCaptures) blackCaptures.innerHTML = capturedText(counts.b, "b");
 }
 
 function capturedText(counts, color) {
@@ -410,6 +413,7 @@ botButtons.forEach((button) => {
 });
 joinForm?.addEventListener("submit", (event) => {
   event.preventDefault();
+  if (!roomCodeInput) return;
   const roomId = roomCodeInput.value.trim().replace(/[^a-zA-Z0-9_-]/g, "");
   if (!roomId) {
     showToast("Enter a room code.");
@@ -444,12 +448,12 @@ function renderPreviewBoard() {
 
 const roomId = currentRoomId();
 if (roomId) {
-  homeView.classList.add("hidden");
-  gameView.classList.remove("hidden");
+  if (homeView) homeView.classList.add("hidden");
+  if (gameView) gameView.classList.remove("hidden");
   connect(roomId);
 } else {
-  homeView.classList.remove("hidden");
-  gameView.classList.add("hidden");
+  if (homeView) homeView.classList.remove("hidden");
+  if (gameView) gameView.classList.add("hidden");
   renderPreviewBoard();
 }
 
