@@ -48,6 +48,9 @@ const movesList = document.querySelector("#movesList");
 const toast = document.querySelector("#toast");
 const whiteCaptures = document.querySelector("#whiteCaptures");
 const blackCaptures = document.querySelector("#blackCaptures");
+const moveSound = document.querySelector("#moveSound");
+const captureSound = document.querySelector("#captureSound");
+const checkSound = document.querySelector("#checkSound");
 
 let socket;
 let currentState;
@@ -93,6 +96,31 @@ function createLobbySocket() {
   lobbySocket.addEventListener("close", () => showToast("Search stopped."));
 }
 
+function playGameStateSound(prevState, newState) {
+  // Don't play sounds on initial load, only on actual new moves
+  if (!prevState || !newState.lastMove || prevState.turn === newState.turn) return;
+
+  // 1. Play Check Sound
+  if (newState.status === "check" || newState.status === "checkmate") {
+    checkSound.currentTime = 0;
+    checkSound.play().catch(() => console.log("Audio blocked by browser"));
+    return;
+  }
+
+  // 2. Determine if it was a capture by comparing piece counts
+  const prevPiecesCount = Object.keys(fenToBoard(prevState.fen)).length;
+  const newPiecesCount = Object.keys(fenToBoard(newState.fen)).length;
+  const wasCapture = newPiecesCount < prevPiecesCount;
+
+  // 3. Play Capture or Move Sound
+  if (wasCapture) {
+    captureSound.currentTime = 0;
+    captureSound.play().catch(() => console.log("Audio blocked by browser"));
+  } else {
+    moveSound.currentTime = 0;
+    moveSound.play().catch(() => console.log("Audio blocked by browser"));
+  }
+}
 function connect(roomId) {
   socket = new WebSocket(webSocketUrl());
   socket.addEventListener("open", () => {
@@ -106,10 +134,12 @@ function connect(roomId) {
       return;
     }
     if (message.type === "match_found") return;
-    if (message.type === "state") {
+   if (message.type === "state") {
+      const previousState = currentState; // 1. Save the old state
       currentState = message;
       board = fenToBoard(message.fen);
       render();
+      playGameStateSound(previousState, currentState); // 2. Trigger the sounds!
       return;
     }
     if (message.type === "error") {
