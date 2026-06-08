@@ -8,6 +8,8 @@ const pieceNames = {
 };
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
+// --- ORIGINAL DOM ELEMENTS ---
 const startButton = document.querySelector("#startButton");
 const searchGameButton = document.querySelector("#searchGameButton");
 const menuButtons = document.querySelectorAll(".menu-button");
@@ -39,6 +41,20 @@ const moveSound = document.querySelector("#moveSound");
 const captureSound = document.querySelector("#captureSound");
 const checkSound = document.querySelector("#checkSound");
 
+// --- NEW UI DOM ELEMENTS ---
+const btnCreateMode = document.querySelector("#btn-create-mode");
+const btnJoinMode = document.querySelector("#btn-join-mode");
+const btnPlayBot = document.querySelector("#btn-play-bot");
+const createOptionsPanel = document.querySelector("#create-options-panel");
+const joinOptionsPanel = document.querySelector("#join-options-panel");
+const privateToggle = document.querySelector("#private-toggle");
+const toggleLabel = document.querySelector("#toggle-label");
+const btnConfirmCreate = document.querySelector("#btn-confirm-create");
+const btnConfirmJoinPrivate = document.querySelector("#btn-confirm-join-private");
+const privateCodeInput = document.querySelector("#private-code-input");
+const publicRoomsList = document.querySelector("#public-rooms-list");
+const colorPicks = document.querySelectorAll(".color-pick");
+
 let socket;
 let currentState;
 let role = "spectator";
@@ -46,6 +62,72 @@ let selectedSquare = null;
 let board = {};
 let dragState = null;
 let ignoreClickUntil = 0;
+let selectedColor = 'white'; // New UI State
+
+// --- UI EVENT LISTENERS ---
+
+if (privateToggle) {
+    privateToggle.addEventListener('change', (e) => {
+        if(toggleLabel) toggleLabel.innerText = e.target.checked ? "Private Room" : "Public Room";
+    });
+}
+
+colorPicks.forEach(button => {
+    button.addEventListener('click', (e) => {
+        colorPicks.forEach(b => {
+            b.classList.add('opacity-50');
+            b.classList.remove('shadow-sm', 'border-gray-400');
+        });
+        e.target.classList.remove('opacity-50');
+        e.target.classList.add('shadow-sm', 'border-gray-400');
+        selectedColor = e.target.getAttribute('data-color');
+    });
+});
+
+if (btnCreateMode && btnJoinMode) {
+    btnCreateMode.addEventListener('click', () => {
+        createOptionsPanel?.classList.remove('hidden');
+        createOptionsPanel?.classList.add('flex');
+        joinOptionsPanel?.classList.add('hidden');
+        joinOptionsPanel?.classList.remove('flex');
+        
+        btnCreateMode.classList.replace('bg-white', 'bg-red-500');
+        btnCreateMode.classList.replace('text-gray-800', 'text-white');
+        btnJoinMode.classList.replace('bg-red-500', 'bg-white');
+        btnJoinMode.classList.replace('text-white', 'text-gray-800');
+    });
+
+    btnJoinMode.addEventListener('click', () => {
+        joinOptionsPanel?.classList.remove('hidden');
+        joinOptionsPanel?.classList.add('flex');
+        createOptionsPanel?.classList.add('hidden');
+        createOptionsPanel?.classList.remove('flex');
+
+        btnJoinMode.classList.replace('bg-white', 'bg-red-500');
+        btnJoinMode.classList.replace('text-gray-800', 'text-white');
+        btnCreateMode.classList.replace('bg-red-500', 'bg-white');
+        btnCreateMode.classList.replace('text-white', 'text-gray-800');
+    });
+}
+
+// Map the new "Create Room" button to your existing backend API
+btnConfirmCreate?.addEventListener("click", () => {
+    // Note: If you want to use `selectedColor` and `privateToggle.checked`, 
+    // you will need to update your `/api/new-room` route on the backend later.
+    createRoom("human", "easy");
+});
+
+// Map the new "Join Code" button to your existing redirect logic
+btnConfirmJoinPrivate?.addEventListener("click", () => {
+    const roomId = privateCodeInput?.value.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+    if (!roomId) {
+        showToast("Enter a room code.");
+        return;
+    }
+    window.location.href = `/room/${roomId}`;
+});
+
+// --- CORE GAME LOGIC ---
 
 function currentRoomId() {
   const match = window.location.pathname.match(/^\/room\/([a-zA-Z0-9_-]+)/);
@@ -397,6 +479,7 @@ async function copyLink() {
   showToast("Room link copied.");
 }
 
+// Keep original event listeners as fallbacks if the DOM elements exist
 startButton?.addEventListener("click", () => createRoom());
 searchGameButton?.addEventListener("click", createLobbySocket);
 menuButtons.forEach((button) => {
@@ -457,6 +540,7 @@ if (roomId) {
   renderPreviewBoard();
 }
 
+// --- DESIGN MODE ---
 const designTargets = {
   title: document.querySelector(".hero-title"),
   actions: document.querySelector(".home-actions"),

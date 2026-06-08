@@ -25,37 +25,54 @@
       </header>
 
       <section class="home-view main-layout" id="homeView">
-        <section class="home-copy hero-section">
-          <h1 class="hero-title">
-            <span class="text-phrase">One room.</span>
-            <span class="text-phrase">One board.</span>
-            <span class="text-phrase">No clutter.</span>
-          </h1>
-          <div class="controls-wrapper">
-            <div class="buttons-row home-actions">
-              <button class="primary-button btn-primary" id="startButton">Create Room</button>
-              <button class="secondary-button btn-secondary menu-button" data-menu="joinMenu">Join Room</button>
-              <button class="secondary-button btn-secondary menu-button" data-menu="botMenu">Play Bot</button>
-            </div>
-            <div class="toggle-container">
-              <span class="toggle-label">Private Room:</span>
-              <label class="switch private-toggle">
-                <input id="privateRoomToggle" type="checkbox" aria-label="Private room" />
-                <span class="slider round toggle-track" aria-hidden="true"></span>
-              </label>
-            </div>
-          </div>
-          <div class="home-menu hidden" id="joinMenu">
-            <button class="secondary-button" id="searchGameButton">Search Public Room</button>
-            <form class="join-form" id="joinForm">
-              <input id="roomCodeInput" autocomplete="off" placeholder="Private room code" aria-label="Private room code" />
-              <button class="secondary-button" type="submit">Join Code</button>
-            </form>
-          </div>
-          <div class="home-menu hidden" id="botMenu" aria-label="Bot difficulty">
-            <button class="secondary-button bot-button" data-difficulty="easy">Easy Bot</button>
-            <button class="secondary-button bot-button" data-difficulty="medium">Medium Bot</button>
-            <button class="secondary-button bot-button" data-difficulty="hard">Hard Bot</button>
+        
+        <section class="home-copy hero-section relative">
+          <div id="start-screen" class="flex flex-col gap-4 absolute z-50 bg-[#F5F1E7] p-10 rounded-xl shadow-lg w-[400px]">
+              
+              <h1 class="text-5xl font-bold text-gray-900 mb-2">One room.<br>One board.<br>No clutter.</h1>
+
+              <div class="flex gap-2">
+                  <button id="btn-create-mode" class="bg-red-500 text-white px-4 py-2 rounded-md font-bold shadow-sm transition">Create Room</button>
+                  <button id="btn-join-mode" class="bg-white border border-gray-300 text-gray-800 px-4 py-2 rounded-md font-bold hover:bg-gray-50 transition">Join Room</button>
+                  <button id="btn-play-bot" class="bg-white border border-gray-300 text-gray-800 px-4 py-2 rounded-md font-bold hover:bg-gray-50 transition">Play Bot</button>
+              </div>
+
+              <div id="create-options-panel" class="flex flex-col gap-4 mt-2">
+                  <div class="flex items-center gap-3">
+                      <span class="text-gray-700 font-semibold text-sm">Room Visibility:</span>
+                      <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" id="private-toggle" class="sr-only peer">
+                          <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500"></div>
+                          <span id="toggle-label" class="ml-2 text-sm font-medium text-gray-900">Public Room</span>
+                      </label>
+                  </div>
+
+                  <div class="flex items-center gap-3">
+                      <span class="text-gray-700 font-semibold text-sm">Play As:</span>
+                      <div class="flex gap-2">
+                          <button data-color="white" class="color-pick bg-white border border-gray-400 text-black px-2 py-1 rounded text-sm font-bold active-pick shadow-sm">White</button>
+                          <button data-color="black" class="color-pick bg-gray-800 text-white px-2 py-1 rounded text-sm font-bold opacity-50 hover:opacity-100 transition">Black</button>
+                          <button data-color="random" class="color-pick bg-gray-200 text-gray-800 px-2 py-1 rounded text-sm font-bold opacity-50 hover:opacity-100 transition">Random</button>
+                      </div>
+                  </div>
+
+                  <button id="btn-confirm-create" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-md font-bold mt-2 transition shadow-sm">Start Match</button>
+              </div>
+
+              <div id="join-options-panel" class="hidden flex-col gap-4 mt-2">
+                  
+                  <div class="bg-white border border-gray-300 rounded-md p-3">
+                      <h3 class="font-bold text-gray-800 text-sm mb-2">Search Public Rooms</h3>
+                      <div id="public-rooms-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                          <p class="text-gray-400 text-xs italic">No active public rooms. Create one!</p>
+                      </div>
+                  </div>
+
+                  <div class="flex gap-2">
+                      <input type="text" id="private-code-input" placeholder="Private room code" class="border border-gray-300 p-2 rounded-md text-sm flex-1 focus:outline-none focus:border-red-400">
+                      <button id="btn-confirm-join-private" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-md text-sm font-bold transition shadow-sm">Join Code</button>
+                  </div>
+              </div>
           </div>
         </section>
         <section class="board-section">
@@ -111,8 +128,8 @@
     </main>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script type="module" src="/app.js"></script>
-  <audio id="moveSound" src="/move.mp3"></audio>
-<audio id="captureSound" src="/capture.mp3"></audio>
-<audio id="checkSound" src="/check.mp3"></audio>
+    <audio id="moveSound" src="/move.mp3"></audio>
+    <audio id="captureSound" src="/capture.mp3"></audio>
+    <audio id="checkSound" src="/check.mp3"></audio>
   </body>
 </html>
